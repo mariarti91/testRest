@@ -11,6 +11,7 @@ class MyHttpClient : public QObject
 public:
     explicit MyHttpClient(QObject *parent = 0);
     void doDownload(const QString& url);
+    void doUpload(const QString& url, const QByteArray &data);
 
 signals:
 
