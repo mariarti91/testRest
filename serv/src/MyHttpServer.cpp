@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QTcpSocket>
 #include <QDateTime>
+#include <QByteArray>
 
 MyHttpServer::MyHttpServer(QObject *parent) :
     QObject(parent), m_pServer(this)
@@ -22,27 +23,70 @@ MyHttpServer::MyHttpServer(QObject *parent) :
 void MyHttpServer::slotNewConnectionHandler()
 {
     qDebug() << " [ ]Have a new connection!";
-    QTcpSocket* sock = m_pServer.nextPendingConnection();;
-    connect(sock, SIGNAL(readyRead()), this, SLOT(slotReadDataHandler()));
-    connect(sock, SIGNAL(disconnected()), this, SLOT(slotDisconnectedHandler()));
+    QTcpSocket* sock = m_pServer.nextPendingConnection();
+    sock->waitForReadyRead();
+    QByteArray request(sock->readAll());
+    qDebug() << request;
+    QStringList buf = QString(request).split(' ');
+
+    if(buf.at(0) == "GET")
+    {
+        QString responce = "HTTP/1.1 200 OK\r\n\r\n%1";
+        sock->write(responce.arg(QTime::currentTime().toString()).toLatin1());
+        sock->waitForBytesWritten();
+        sock->disconnectFromHost();
+        sock->deleteLater();
+        return;
+    }
+
+    if(buf.at(0) == "POST")
+    {
+        QString destUrl(buf.at(1));
+        sock->waitForReadyRead();
+        QByteArray data(sock->readAll());
+        qDebug() << "put " << QByteArray::fromBase64(data) << " into " << destUrl;
+        QString responce = "HTTP/1.1 200 OK\r\n\r\n";
+        sock->write(responce.toLatin1());
+        sock->waitForBytesWritten();
+        sock->disconnectFromHost();
+        sock->deleteLater();
+        return;
+    }
+
+//    connect(sock, SIGNAL(readyRead()), this, SLOT(slotReadDataHandler()));
+//    connect(sock, SIGNAL(disconnected()), this, SLOT(slotDisconnectedHandler()));
 }
 //-------------------------------------------------------------------------------------
 
-void MyHttpServer::slotReadDataHandler()
-{
-    QTcpSocket* sock = qobject_cast<QTcpSocket*>(sender());
-    qDebug() << sock->readAll();
+//void MyHttpServer::slotReadDataHandler()
+//{
+//    QTcpSocket* sock = qobject_cast<QTcpSocket*>(sender());
+//    disconnect(sock, SIGNAL(readyRead()), this, SLOT(slotReadDataHandler()));
+//    QByteArray request(sock->readAll());
+//    qDebug() << request;
 
-    QString responce = "HTTP/1.1 200 OK\r\n\r\n%1";
-    sock->write(responce.arg(QTime::currentTime().toString()).toLatin1());
-    sock->disconnectFromHost();
-}
-//-------------------------------------------------------------------------------------
+//    QStringList buf = QString(request).split(' ');
 
-void MyHttpServer::slotDisconnectedHandler()
-{
-    QTcpSocket* sock = qobject_cast<QTcpSocket*>(sender());
-    sock->close();
-    sock->deleteLater();
-}
-//-------------------------------------------------------------------------------------
+//    if(buf.at(0) == "GET")
+//    {
+//        QString responce = "HTTP/1.1 200 OK\r\n\r\n%1";
+//        sock->write(responce.arg(QTime::currentTime().toString()).toLatin1());
+//        sock->disconnectFromHost();
+//    }
+
+//    if(buf.at(0) == "POST")
+//    {
+//        qDebug() << buf.at(1);
+//        qDebug() << sock->readAll();
+//    }
+//    connect(sock, SIGNAL(readyRead()), this, SLOT(slotReadDataHandler()));
+//}
+////-------------------------------------------------------------------------------------
+
+//void MyHttpServer::slotDisconnectedHandler()
+//{
+//    QTcpSocket* sock = qobject_cast<QTcpSocket*>(sender());
+//    sock->close();
+//    sock->deleteLater();
+//}
+////-------------------------------------------------------------------------------------
