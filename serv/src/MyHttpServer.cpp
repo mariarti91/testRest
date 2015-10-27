@@ -4,6 +4,8 @@
 #include <QTcpSocket>
 #include <QDateTime>
 #include <QByteArray>
+#include <QJsonObject>
+#include <QJsonDocument>
 
 MyHttpServer::MyHttpServer(QObject *parent) :
     QObject(parent), m_pServer(this)
@@ -41,15 +43,27 @@ void MyHttpServer::slotNewConnectionHandler()
 
     if(buf.at(0) == "POST")
     {
-        QString destUrl(buf.at(1));
+	QString destUrl(buf.at(1));
         sock->waitForReadyRead();
         QByteArray data(sock->readAll());
-        qDebug() << "put " << QByteArray::fromBase64(data) << " into " << destUrl;
+        qDebug() << "put " << QString(data) << " into " << destUrl;
         QString responce = "HTTP/1.1 200 OK\r\n\r\n";
         sock->write(responce.toLatin1());
         sock->waitForBytesWritten();
         sock->disconnectFromHost();
         sock->deleteLater();
+
+        //QByteArray payload;
+        //payload.append(QString(data).split('=').at(1));
+        //payload = QByteArray::fromBase64(QByteArray::fromPercentEncoding(payload));
+        //qDebug() << payload;
+
+        //QJsonDocument doc = QJsonDocument::fromJson(payload);
+        //QJsonObject jObj = doc.object();
+        //QString table = destUrl.split('/').at(2);
+        //qDebug() << "table: " << table << " object: " << jObj;
+
+
         return;
     }
 
