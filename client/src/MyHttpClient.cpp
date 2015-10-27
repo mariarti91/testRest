@@ -4,6 +4,7 @@
 #include <QUrlQuery>
 #include <QNetworkRequest>
 #include <QDateTime>
+#include <QHttpPart>
 
 MyHttpClient::MyHttpClient(QObject *parent) : QObject(parent)
 {
@@ -50,20 +51,22 @@ void MyHttpClient::doDownload(const QString &url, const QString& table)
 
 void MyHttpClient::doUpload(const QString &url, const QByteArray& data)
 {
-    QUrl serviceUrl(url);
-
-    QByteArray postData;
-
-    QUrl param;
     QUrlQuery query;
-    //query.addQueryItem("data", QString(data.toBase64()));
-    query.addQueryItem("r", "api/sinc/post");
-    query.addQueryItem("table", "gateway");
+    query.addQueryItem("r", "api/sync/post");
+    query.addQueryItem("table", "measurement");
+    query.addQueryItem("access-token", "api_token");
+    QUrl param;
     param.setQuery(query);
+    QString request;
+    request = param.toEncoded(QUrl::RemoveFragment);
+    request = url + request;
 
-    postData = param.toEncoded(QUrl::RemoveFragment);
+    qDebug() << request;
 
-    qDebug()  << postData;
-    //m_pqnaManager->post(QNetworkRequest(serviceUrl), postData);
+    QNetworkRequest req;
+    req.setUrl(request);
+    req.setHeader(QNetworkRequest::ContentLengthHeader, data.count());
+
+    m_pqnaManager->post(req, data);
 }
 //----------------------------------------------------------------------
