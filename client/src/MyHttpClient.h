@@ -10,7 +10,7 @@ class MyHttpClient : public QObject
     Q_OBJECT
 public:
     explicit MyHttpClient(QObject *parent = 0);
-    void doDownload(const QString& url);
+    void doDownload(const QString& url, const QString& table);
     void doUpload(const QString& url, const QByteArray &data);
 
 signals:

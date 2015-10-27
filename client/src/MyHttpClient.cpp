@@ -30,9 +30,21 @@ void MyHttpClient::slotReplyFinishedHandler(QNetworkReply *reply)
 }
 //----------------------------------------------------------------------
 
-void MyHttpClient::doDownload(const QString &url)
+void MyHttpClient::doDownload(const QString &url, const QString& table)
 {
-    m_pqnaManager->get(QNetworkRequest(QUrl(url)));
+    QUrl serviceUrl(url);
+    QUrlQuery query;
+    query.addQueryItem("r", "api/sync/get");
+    query.addQueryItem("table", table);
+    query.addQueryItem("access-token", "api_token");
+    QUrl param;
+
+    param.setQuery(query);
+    QString request;
+    request = param.toEncoded(QUrl::RemoveFragment);
+    request = url + request;
+//    qDebug() << request;
+    m_pqnaManager->get(QNetworkRequest(request));
 }
 //----------------------------------------------------------------------
 
@@ -44,11 +56,14 @@ void MyHttpClient::doUpload(const QString &url, const QByteArray& data)
 
     QUrl param;
     QUrlQuery query;
-    query.addQueryItem("data", QString(data.toBase64()));
+    //query.addQueryItem("data", QString(data.toBase64()));
+    query.addQueryItem("r", "api/sinc/post");
+    query.addQueryItem("table", "gateway");
     param.setQuery(query);
 
     postData = param.toEncoded(QUrl::RemoveFragment);
 
-    m_pqnaManager->post(QNetworkRequest(serviceUrl), postData);
+    qDebug()  << postData;
+    //m_pqnaManager->post(QNetworkRequest(serviceUrl), postData);
 }
 //----------------------------------------------------------------------
