@@ -70,3 +70,23 @@ void MyHttpClient::doUpload(const QString &url, const QByteArray& data)
     m_pqnaManager->post(req, data);
 }
 //----------------------------------------------------------------------
+
+void MyHttpClient::doDelete(const QString &table, const QString &uid)
+{
+    QString url = QString("http://127.0.0.1:8080/%1/%2").arg(table).arg(uid);
+    qDebug() << url;
+    QNetworkRequest req(url);
+    m_pqnaManager->deleteResource(req);
+}
+//----------------------------------------------------------------------
+
+void MyHttpClient::doUpdate(const QString &table, const QString &uid, const QByteArray &data)
+{
+    QString url = QString("http://127.0.0.1:8080/%1/%2").arg(table).arg(uid);
+    QNetworkRequest req;
+    req.setUrl(url);
+    req.setHeader(QNetworkRequest::ContentLengthHeader, data.count());
+
+    m_pqnaManager->put(req, data);
+}
+//----------------------------------------------------------------------
